@@ -1,0 +1,7 @@
+requests==2.31.0
+polyline==2.0.1
+pytest
+google-generativeai
+pytesseract
+Pillow
+playwright

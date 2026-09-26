@@ -1,0 +1,31 @@
+{
+  "locations": {
+    "origin": {
+      "name": "Office",
+      "lat": 12.9279,
+      "lon": 77.6271
+    },
+    "destination": {
+      "name": "Home",
+      "lat": 12.9716,
+      "lon": 77.5946
+    }
+  },
+  "mapbox_token": "YOUR_MAPBOX_ACCESS_TOKEN",
+  "google_maps_token": "YOUR_GOOGLE_MAPS_API_KEY",
+  "tomorrow_io_token": "YOUR_TOMORROW_IO_API_KEY",
+  "polling": {
+    "interval_minutes": 5,
+    "active_hours_start": "16:00",
+    "active_hours_end": "20:30"
+  },
+  "route": {
+    "fallback_commute_mins": 60,
+    "dense_sampling_interval_km": 3.0
+  },
+  "thresholds": {
+    "rain_mm_15min": 0.4,
+    "safety_buffer_mins": 15,
+    "waterlogging_past_2h_mm": 5.0
+  }
+}
