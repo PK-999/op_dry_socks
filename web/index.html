@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A weather-aware commute planner for Bengaluru. Check rain along your route and public traffic reports before you leave.">
+  <meta name="theme-color" content="#f6f7f2">
+  <title>Dry Socks — A better time to leave</title>
+  <script src="theme.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#commute-planner">Skip to commute planner</a>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Dry Socks home">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M7 18a6 6 0 0 1 .6-12A8 8 0 0 1 23 8a5 5 0 0 1 1 10H7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m10 23-2 4m9-4-2 4m9-4-2 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+      <span>dry socks<span class="brand-period">.</span></span>
+    </a>
+    <span class="header-divider" aria-hidden="true"></span>
+    <span class="city-label">Bengaluru <span class="city-dot" aria-hidden="true"></span></span>
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" aria-pressed="false" title="Switch to dark mode">
+      <svg class="theme-icon theme-icon-sun" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.4"/><path d="M10 2.2v2m0 11.6v2M2.2 10h2m11.6 0h2M4.5 4.5l1.4 1.4m8.2 8.2 1.4 1.4m0-11-1.4 1.4m-8.2 8.2-1.4 1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <svg class="theme-icon theme-icon-moon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16.4 12.8A6.8 6.8 0 0 1 7.2 3.6 6.8 6.8 0 1 0 16.4 12.8Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="header-time"><span id="local-date">Your local commute companion</span><strong id="local-time"></strong><span class="timezone">IST</span></div>
+  </header>
+
+  <main class="page-shell">
+    <section class="page-intro" aria-labelledby="page-title">
+      <div><p class="eyebrow">A BETTER TIME TO LEAVE</p><h1 id="page-title">Get ahead of the rain.</h1><p class="intro-copy">Your route. The forecast. A little head start.</p></div>
+      <div class="refresh-wrap"><button class="button refresh-button" id="refresh-btn" disabled><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16 7a6.5 6.5 0 1 0 .2 5M16 3v4h-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Refresh outlook</span></button><span id="last-updated" class="small-copy">Check a route to get started</span></div>
+    </section>
+    <div class="app-notice" id="app-notice" role="alert" hidden></div>
+
+    <div class="dashboard-grid">
+      <section class="card planner-card" id="commute-planner" aria-labelledby="planner-title">
+        <div class="section-heading"><h2 id="planner-title">Your commute</h2><span class="small-label">01 / PLAN</span></div>
+        <div class="mode-switch" role="group" aria-label="Travel mode">
+          <button type="button" class="mode-button" data-mode="DRIVE" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 10 2-5h10l2 5M5 10h14a2 2 0 0 1 2 2v6H3v-6a2 2 0 0 1 2-2Zm0 8v2m14-2v2M6 14h2m8 0h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Car</button>
+          <button type="button" class="mode-button active" data-mode="TWO_WHEELER" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="5" cy="16" r="3" stroke="currentColor" stroke-width="1.6"/><circle cx="19" cy="16" r="3" stroke="currentColor" stroke-width="1.6"/><path d="m5 16 4-8 5 8H5m4-8h4m1-3h3l2 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Two-wheeler</button>
+        </div>
+        <div class="locations">
+          <div class="location-group" data-field="origin">
+            <div class="field-label-row"><label for="origin-input">FROM</label><button type="button" class="map-pick" data-pick="origin" aria-label="Choose origin on map">Pick on map</button></div>
+            <div class="location-input-wrap"><span class="location-letter" aria-hidden="true">A</span><input id="origin-input" type="text" placeholder="Where are you starting?" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="origin-results" aria-expanded="false"><button type="button" class="clear-input" data-clear="origin" aria-label="Clear origin" hidden>×</button></div>
+            <div class="search-results" id="origin-results" role="listbox" aria-label="Origin suggestions" hidden></div>
+          </div>
+          <div class="swap-row"><span></span><button type="button" id="swap-btn" aria-label="Swap origin and destination" title="Swap origin and destination"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6 15V3m-3 3 3-3 3 3m5-1v12m-3-3 3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+          <div class="location-group" data-field="destination">
+            <div class="field-label-row"><label for="destination-input">TO</label><button type="button" class="map-pick" data-pick="destination" aria-label="Choose destination on map">Pick on map</button></div>
+            <div class="location-input-wrap"><span class="location-letter destination" aria-hidden="true">B</span><input id="destination-input" type="text" placeholder="Where are you headed?" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="destination-results" aria-expanded="false"><button type="button" class="clear-input" data-clear="destination" aria-label="Clear destination" hidden>×</button></div>
+            <div class="search-results" id="destination-results" role="listbox" aria-label="Destination suggestions" hidden></div>
+          </div>
+        </div>
+        <button type="button" class="button primary-button" id="find-routes-btn" disabled><span>Find routes</span><span aria-hidden="true">↗</span></button>
+        <div class="route-options-heading"><h3>Route options</h3><span id="route-count" class="count-badge">—</span></div>
+        <div id="route-options-list" class="route-options-list" aria-live="polite"><p class="empty-copy">Choose your start and destination to compare the way ahead.</p></div>
+        <div class="planner-bottom"><button type="button" class="button save-button" id="save-btn" disabled><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 3h10v14l-5-3-5 3V3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Save commute</span></button><p id="save-status" class="small-copy">Keep this route for your next check.</p></div>
+      </section>
+
+      <section class="outlook-column" aria-label="Departure outlook">
+        <div class="departure-card" id="departure-card" aria-live="polite">
+          <div class="hero-heading"><span class="eyebrow">YOUR DEPARTURE WINDOW</span><svg class="hero-weather-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M11 26a8 8 0 1 1 1-16 10 10 0 0 1 19 3 6.5 6.5 0 0 1 0 13H11Z" stroke="currentColor" stroke-width="1.5"/><path d="m15 31-2 4m10-4-2 4m10-4-2 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <span class="status-pill" id="outlook-status"><span class="status-dot" aria-hidden="true"></span><span id="outlook-status-text">Ready when you are</span></span>
+          <h2 id="advice-title">A better journey<br>starts here.</h2>
+          <p class="advice-subtitle" id="advice-subtitle">Find your route to see when rain could cross your commute.</p>
+          <div class="departure-detail" id="departure-detail"><span class="detail-marker" aria-hidden="true">↗</span><p id="advice-body">We’ll check the forecast along the way, with public traffic reports for extra context.</p></div>
+          <div class="departure-window" id="departure-window" hidden><span id="window-value"></span><div><span id="window-unit">minutes</span><small>Estimated leave-within window</small></div></div>
+          <div class="hero-footer"><span id="forecast-source">Route-based weather outlook</span><span class="hero-footer-tag">MODEL FORECAST</span></div>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card"><span class="metric-label">JOURNEY TIME</span><div class="metric-value" id="journey-value">— <span>min</span></div><p id="journey-note">Choose a route first</p></div>
+          <div class="metric-card"><span class="metric-label">RAIN ON THE ROUTE</span><div class="metric-value" id="rain-value">—</div><p id="rain-note">Awaiting forecast</p></div>
+        </div>
+      </section>
+
+      <section class="card map-card" aria-labelledby="map-title">
+        <div class="map-card-heading"><div><p class="eyebrow">THE WAY AHEAD</p><h2 id="map-title">Your route, at a glance</h2></div><button type="button" class="icon-button" id="fit-map-btn" title="Fit route on map" aria-label="Fit route on map"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7 3H3v4m10-4h4v4M3 13v4h4m6 0h4v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+        <div class="map-frame"><div id="map" aria-label="Interactive Bengaluru commute map"></div><div class="map-fallback" id="map-fallback"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="m5 9 10-4 10 4 10-4v26l-10 4-10-4-10 4V9Zm10-4v26M25 9v26" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><strong id="map-fallback-title">Opening the map</strong><p id="map-fallback-copy">You can search for your locations while the map loads.</p></div><div id="map-instruction" class="map-instruction" hidden></div></div>
+        <div class="map-footer"><span><i class="legend-route" aria-hidden="true"></i>Selected route</span><span id="map-route-meta">Bengaluru, Karnataka</span></div>
+      </section>
+    </div>
+
+    <div class="details-grid">
+      <section class="card forecast-card" aria-labelledby="forecast-title">
+        <div class="section-heading"><div><p class="eyebrow">A LOOK DOWN THE ROAD</p><h2 id="forecast-title">Rain along your route</h2></div><span class="subtle-badge" id="forecast-coverage">Forecast checkpoints</span></div>
+        <div id="forecast-content" class="forecast-content" aria-live="polite"><div class="section-empty"><span class="empty-line" aria-hidden="true"></span><h3>Every part of the journey matters.</h3><p>Rain can arrive at different times along your route. Pick a commute to see the forecast at each checkpoint.</p></div></div>
+        <p class="footnote" id="forecast-note">Model estimates, not street-level observations. Timing depends on the forecast provider’s resolution.</p>
+      </section>
+      <section class="card reports-card" aria-labelledby="reports-title">
+        <div class="section-heading"><div><p class="eyebrow">PUBLIC X REPORTS</p><h2 id="reports-title">From the streets</h2></div><span class="source-status" id="reports-status">Not checked</span></div>
+        <div id="reports-content" aria-live="polite"><div class="section-empty"><span class="empty-line" aria-hidden="true"></span><h3>Local context for your commute.</h3><p>Traffic police and local public reports will appear here after you choose a route.</p></div></div>
+        <div id="source-coverage"></div>
+        <p class="footnote">Reports may be delayed or incomplete. No reports does not mean the roads are clear.</p>
+      </section>
+    </div>
+    <footer class="page-footer"><span>Made for the way Bengaluru moves.</span><span>Browser checks are on demand. Background alerts run separately with <code>main.py</code>.</span></footer>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

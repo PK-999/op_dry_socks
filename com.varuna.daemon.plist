@@ -8,11 +8,12 @@
     <array>
         <string>{{PYTHON_PATH}}</string>
         <string>{{SCRIPT_PATH}}</string>
+        <string>--watch</string>
     </array>
     <key>WorkingDirectory</key>
     <string>{{WORKING_DIR}}</string>
-    <key>StartInterval</key>
-    <integer>300</integer>
+    <key>KeepAlive</key>
+    <true/>
     <key>StandardOutPath</key>
     <string>/tmp/varuna.stdout.log</string>
     <key>StandardErrorPath</key>

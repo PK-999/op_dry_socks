@@ -3,3 +3,13 @@ config.json
 __pycache__
 *.pyc
 .DS_Store
+.pytest_cache/
+artifacts/
+*.log
+
+# Local data and experiments
+telemetry.csv
+scratch/
+.env
+.env.*
+!.env.example

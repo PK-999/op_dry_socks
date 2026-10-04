@@ -19,15 +19,18 @@ def save_state(state):
         json.dump(state, f)
     os.rename(tmp_file, STATE_FILE)
 
-def should_notify(new_state, rain_corridor_mins):
+def should_notify(new_state, rain_corridor_mins, route_key=None):
     state = load_state()
+    if route_key is not None and state.get('route_key') != route_key:
+        state = {'last_state': 'CLEAR', 'last_alert_timestamp': 0,
+                 'last_notified_rain_mins': 999, 'route_key': route_key}
     last_state = state.get("last_state")
     last_alert = state.get("last_alert_timestamp", 0)
     last_rain_mins = state.get("last_notified_rain_mins", 999)
     now = int(time.time())
     
     # 3. Escalation Override
-    if new_state in ["STRAND_RISK", "ACTIVE_RAIN", "WATERLOGGED"] and new_state != last_state:
+    if new_state in ["RUN_NOW", "STRAND_RISK", "ACTIVE_RAIN", "WATERLOGGED", "TRAFFIC_ALERT"] and new_state != last_state:
         return True, state
         
     # 1. Identical State Suppression

@@ -12,15 +12,21 @@
     }
   },
   "mapbox_token": "YOUR_MAPBOX_ACCESS_TOKEN",
+  "google_maps_browser_key": "YOUR_REFERRER_RESTRICTED_GOOGLE_BROWSER_KEY",
   "google_maps_token": "YOUR_GOOGLE_MAPS_API_KEY",
   "tomorrow_io_token": "YOUR_TOMORROW_IO_API_KEY",
+  "twitter_auth_token": "YOUR_AUTH_TOKEN_HERE",
+  "social": {
+    "enabled": true,
+    "max_age_hours": 2
+  },
   "polling": {
     "interval_minutes": 5,
     "active_hours_start": "16:00",
     "active_hours_end": "20:30"
   },
   "route": {
-    "fallback_commute_mins": 60,
+    "travel_mode": "TWO_WHEELER",
     "dense_sampling_interval_km": 3.0
   },
   "thresholds": {
