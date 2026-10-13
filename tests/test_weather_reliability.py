@@ -1,4 +1,5 @@
 """Offline regression coverage for forecast timing and provider failures."""
+
 import datetime
 from unittest.mock import Mock
 
@@ -6,7 +7,6 @@ import pytest
 import requests
 
 from services import evaluator, tomorrow, weather
-
 
 NOW = 1_800_000_000
 
@@ -28,7 +28,9 @@ def forecast(amounts, offsets=None):
 @pytest.fixture(autouse=True)
 def offline_clock(monkeypatch):
     monkeypatch.setattr(weather.time, "time", lambda: NOW)
-    monkeypatch.setattr(requests, "get", Mock(side_effect=AssertionError("Unexpected network access")))
+    monkeypatch.setattr(
+        requests, "get", Mock(side_effect=AssertionError("Unexpected network access"))
+    )
     if hasattr(weather, "_weather_cache"):
         weather._weather_cache.clear()
 
@@ -38,19 +40,23 @@ def test_provider_timeout_is_unknown_not_clear(monkeypatch):
     assert weather.get_open_meteo_data(12.9, 77.6) == (None, False)
 
 
-@pytest.mark.parametrize("data", [{}, {"minutely_15": {"time": [], "precipitation": []}}, forecast([None] * 5)])
+@pytest.mark.parametrize(
+    "data", [{}, {"minutely_15": {"time": [], "precipitation": []}}, forecast([None] * 5)]
+)
 def test_empty_or_null_forecast_is_unknown(monkeypatch, data):
     monkeypatch.setattr(requests, "get", lambda *a, **k: response(data))
     assert weather.get_open_meteo_data(12.9, 77.6)[0] is None
 
 
 def test_rain_interval_ending_in_five_minutes_is_current(monkeypatch):
-    monkeypatch.setattr(requests, "get", lambda *a, **k: response(forecast([0, .8, 0, 0], [-600, 300, 1200, 2100])))
+    monkeypatch.setattr(
+        requests, "get", lambda *a, **k: response(forecast([0, 0.8, 0, 0], [-600, 300, 1200, 2100]))
+    )
     assert weather.get_open_meteo_data(12.9, 77.6)[0] == 0
 
 
 def test_future_rain_uses_start_of_accumulation_interval(monkeypatch):
-    monkeypatch.setattr(requests, "get", lambda *a, **k: response(forecast([0, 0, .8, 0, 0])))
+    monkeypatch.setattr(requests, "get", lambda *a, **k: response(forecast([0, 0, 0.8, 0, 0])))
     assert weather.get_open_meteo_data(12.9, 77.6)[0] == 15
 
 
@@ -61,9 +67,11 @@ def test_two_hour_history_does_not_count_three_hourly_buckets(monkeypatch):
 
 def test_batch_weather_preserves_waypoint_order_eta_and_missing_results(monkeypatch):
     assert hasattr(weather, "get_route_weather"), "Route weather API is missing"
-    monkeypatch.setattr(requests, "get", lambda *a, **k: response([forecast([0, 0, .8, 0, 0])]))
-    points = [{"name": "Start", "lat": 12.9, "lon": 77.6, "eta_mins": 0},
-              {"name": "End", "lat": 13, "lon": 77.7, "eta_mins": 40}]
+    monkeypatch.setattr(requests, "get", lambda *a, **k: response([forecast([0, 0, 0.8, 0, 0])]))
+    points = [
+        {"name": "Start", "lat": 12.9, "lon": 77.6, "eta_mins": 0},
+        {"name": "End", "lat": 13, "lon": 77.7, "eta_mins": 40},
+    ]
     results = weather.get_route_weather(points)
     assert len(results) == 2
     assert results[0]["mins_to_rain"] == 15
@@ -76,13 +84,13 @@ def test_batch_weather_preserves_waypoint_order_eta_and_missing_results(monkeypa
 
 
 def test_tomorrow_failure_cannot_erase_rain_warning(monkeypatch):
-    monkeypatch.setattr(requests, "get", lambda *a, **k: response(forecast([0, 0, .8, 0, 0])))
+    monkeypatch.setattr(requests, "get", lambda *a, **k: response(forecast([0, 0, 0.8, 0, 0])))
     monkeypatch.setattr(weather, "get_tomorrow_rain", lambda *a, **k: None)
     assert weather.get_weather_data(12.9, 77.6, "test-key")[0] == 15
 
 
 def test_disagreeing_provider_cannot_erase_rain_warning(monkeypatch):
-    monkeypatch.setattr(requests, "get", lambda *a, **k: response(forecast([0, 0, .8, 0, 0])))
+    monkeypatch.setattr(requests, "get", lambda *a, **k: response(forecast([0, 0, 0.8, 0, 0])))
     monkeypatch.setattr(weather, "get_tomorrow_rain", lambda *a, **k: 999)
     assert weather.get_weather_data(12.9, 77.6, "test-key")[0] == 15
 
@@ -95,11 +103,16 @@ def test_tomorrow_missing_minutely_data_is_unknown(monkeypatch, data):
 
 def test_tomorrow_uses_timestamps_and_converts_mm_per_hour(monkeypatch):
     def minute(offset, intensity):
-        return {"time": datetime.datetime.fromtimestamp(NOW + offset, datetime.timezone.utc).isoformat(),
-                "values": {"rainIntensity": intensity}}
-    data = {"timelines": {"minutely": [minute(0, .5), minute(600, 2.0)]}}
+        return {
+            "time": datetime.datetime.fromtimestamp(
+                NOW + offset, datetime.timezone.utc
+            ).isoformat(),
+            "values": {"rainIntensity": intensity},
+        }
+
+    data = {"timelines": {"minutely": [minute(0, 0.5), minute(600, 2.0)]}}
     monkeypatch.setattr(requests, "get", lambda *a, **k: response(data))
-    assert tomorrow.get_tomorrow_rain(12.9, 77.6, "test-key", .4) == 10
+    assert tomorrow.get_tomorrow_rain(12.9, 77.6, "test-key", 0.4) == 10
 
 
 def point(rain, eta, name="Point", **extra):
@@ -130,7 +143,9 @@ def test_departure_deadline_deducts_waypoint_eta_and_buffer():
 
 
 def test_incident_only_trip_is_not_clear():
-    advice = evaluator.departure_advice(30, 15, [point(999, 0), point(999, 30)], incidents=["Road closed near destination"])
+    advice = evaluator.departure_advice(
+        30, 15, [point(999, 0), point(999, 30)], incidents=["Road closed near destination"]
+    )
     assert advice["state"] == "TRAFFIC_ALERT"
 
 
@@ -141,20 +156,26 @@ def test_empty_route_is_unknown():
 
 def test_short_forecast_horizon_prevents_clear_advice():
     horizon = datetime.datetime.fromtimestamp(NOW + 1200, datetime.timezone.utc).isoformat()
-    advice = evaluator.departure_advice(60, 15, [point(999, 0), point(999, 60, forecast_until=horizon)])
+    advice = evaluator.departure_advice(
+        60, 15, [point(999, 0), point(999, 60, forecast_until=horizon)]
+    )
     assert advice["state"] == "UNKNOWN"
 
 
 def test_cache_reuses_provider_data_but_recalculates_rain_countdown(monkeypatch):
     calls = []
+
     def provider(*args, **kwargs):
         calls.append(kwargs)
-        return response(forecast([0, 0, .8, 0, 0]))
+        return response(forecast([0, 0, 0.8, 0, 0]))
+
     monkeypatch.setattr(requests, "get", provider)
     assert weather.get_open_meteo_data(12.9, 77.6)[0] == 15
     monkeypatch.setattr(weather.time, "time", lambda: NOW + 60)
     assert weather.get_open_meteo_data(12.9, 77.6)[0] == 14
-    assert len(calls) == 1, "Repeated route checks should not spend another provider request inside TTL"
+    assert len(calls) == 1, (
+        "Repeated route checks should not spend another provider request inside TTL"
+    )
     monkeypatch.setattr(weather.time, "time", lambda: NOW + 121)
     weather.get_open_meteo_data(12.9, 77.6)
     assert len(calls) == 2
@@ -162,28 +183,34 @@ def test_cache_reuses_provider_data_but_recalculates_rain_countdown(monkeypatch)
 
 def test_cache_does_not_reuse_a_different_threshold_or_credentials(monkeypatch):
     calls = []
+
     def provider(*args, **kwargs):
         calls.append(kwargs)
-        return response(forecast([0, 0, .8, 0, 0]))
+        return response(forecast([0, 0, 0.8, 0, 0]))
+
     monkeypatch.setattr(requests, "get", provider)
     monkeypatch.setattr(weather, "get_tomorrow_rain", lambda *a, **k: None)
-    assert weather.get_weather_data(12.9, 77.6, "secret-one", .4)[0] == 15
+    assert weather.get_weather_data(12.9, 77.6, "secret-one", 0.4)[0] == 15
     assert weather.get_weather_data(12.9, 77.6, "secret-one", 1)[0] == 999
-    assert weather.get_weather_data(12.9, 77.6, "secret-two", .4)[0] == 15
-    assert weather.get_weather_data(12.9, 77.6, "secret-two", .4)[0] == 15
+    assert weather.get_weather_data(12.9, 77.6, "secret-two", 0.4)[0] == 15
+    assert weather.get_weather_data(12.9, 77.6, "secret-two", 0.4)[0] == 15
     assert len(calls) == 3
     assert "secret-one" not in repr(weather._weather_cache)
     assert "secret-two" not in repr(weather._weather_cache)
 
 
 def test_optional_second_provider_has_bounded_fanout(monkeypatch):
-    points = [{'lat': 12.9 + i / 1000, 'lon': 77.6} for i in range(10)]
-    monkeypatch.setattr(requests, 'get', lambda *a, **k: response([forecast([0, 0, .8, 0, 0]) for _ in points]))
+    points = [{"lat": 12.9 + i / 1000, "lon": 77.6} for i in range(10)]
+    monkeypatch.setattr(
+        requests, "get", lambda *a, **k: response([forecast([0, 0, 0.8, 0, 0]) for _ in points])
+    )
     checked = []
+
     def second_provider(*args):
         checked.append(args[:2])
         return None
-    monkeypatch.setattr(weather, 'get_tomorrow_rain', second_provider)
-    results = weather.get_route_weather(points, 'test-key')
+
+    monkeypatch.setattr(weather, "get_tomorrow_rain", second_provider)
+    results = weather.get_route_weather(points, "test-key")
     assert len(checked) <= 3
-    assert all(result['mins_to_rain'] == 15 for result in results)
+    assert all(result["mins_to_rain"] == 15 for result in results)

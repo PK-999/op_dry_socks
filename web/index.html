@@ -4,10 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="A weather-aware commute planner for Bengaluru. Check rain along your route and public traffic reports before you leave.">
-  <meta name="theme-color" content="#f6f7f2">
+  <meta name="theme-color" content="#faf9f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Dry Socks — A better time to leave</title>
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <script src="vendor/leaflet/leaflet.js"></script>
   <script src="theme.js"></script>
+  <script src="ambient.js"></script>
   <link rel="stylesheet" href="style.css">
+  <script defer src="api.js"></script>
+  <script defer src="map.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -19,6 +26,7 @@
     </a>
     <span class="header-divider" aria-hidden="true"></span>
     <span class="city-label">Bengaluru <span class="city-dot" aria-hidden="true"></span></span>
+    <span class="ambient-badge" id="ambient-badge" title="Live background reflects Bengaluru time & forecast"><span class="ambient-dot" aria-hidden="true"></span><span id="ambient-label">Night · Sky</span></span>
     <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" aria-pressed="false" title="Switch to dark mode">
       <svg class="theme-icon theme-icon-sun" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.4"/><path d="M10 2.2v2m0 11.6v2M2.2 10h2m11.6 0h2M4.5 4.5l1.4 1.4m8.2 8.2 1.4 1.4m0-11-1.4 1.4m-8.2 8.2-1.4 1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       <svg class="theme-icon theme-icon-moon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16.4 12.8A6.8 6.8 0 0 1 7.2 3.6 6.8 6.8 0 1 0 16.4 12.8Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
@@ -29,9 +37,10 @@
   <main class="page-shell">
     <section class="page-intro" aria-labelledby="page-title">
       <div><p class="eyebrow">A BETTER TIME TO LEAVE</p><h1 id="page-title">Get ahead of the rain.</h1><p class="intro-copy">Your route. The forecast. A little head start.</p></div>
-      <div class="refresh-wrap"><button class="button refresh-button" id="refresh-btn" disabled><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16 7a6.5 6.5 0 1 0 .2 5M16 3v4h-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Refresh outlook</span></button><span id="last-updated" class="small-copy">Check a route to get started</span></div>
+      <div class="refresh-wrap"><button class="button refresh-button" id="refresh-btn" aria-label="Refresh outlook" disabled><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16 7a6.5 6.5 0 1 0 .2 5M16 3v4h-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Refresh outlook</span></button><span id="last-updated" class="small-copy">Check a route to get started</span></div>
     </section>
     <div class="app-notice" id="app-notice" role="alert" hidden></div>
+    <div class="app-notice demo-notice" id="demo-notice" role="status" hidden>Demo mode · Sample corridors and synthetic forecasts. Saves last until restart. Do not use this data to plan a journey.</div>
 
     <div class="dashboard-grid">
       <section class="card planner-card" id="commute-planner" aria-labelledby="planner-title">

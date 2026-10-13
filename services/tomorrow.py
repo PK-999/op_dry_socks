@@ -30,7 +30,11 @@ def get_tomorrow_rain(lat, lon, token, rain_threshold=0.4):
             seconds = stamp.timestamp() - now
             values = entry.get("values", {})
             intensity = values.get("rainIntensity", values.get("precipitationIntensity"))
-            if not isinstance(intensity, (int, float)) or not math.isfinite(intensity) or intensity < 0:
+            if (
+                not isinstance(intensity, (int, float))
+                or not math.isfinite(intensity)
+                or intensity < 0
+            ):
                 continue
             if seconds >= -60:
                 samples.append((seconds, intensity))

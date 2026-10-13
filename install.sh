@@ -1,13 +1,18 @@
 #!/bin/bash
 set -e
 
+if [ "$(uname -s)" != "Darwin" ]; then
+    echo "The login monitor installer requires macOS. Use python server.py elsewhere."
+    exit 1
+fi
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
 echo "Setting up virtual environment..."
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt -r requirements-browser.txt
 python -m playwright install chromium
 if [ ! -f config.json ]; then
     cp config.json.example config.json

@@ -2,38 +2,63 @@
 
 Uses provider quota but never edits saved configuration or sends notifications.
 """
+
 import argparse
 import copy
+from datetime import datetime, timedelta, timezone
 
 ROUTES = [
-    ('Koramangala to Indiranagar', (12.9350, 77.6245), (12.9784, 77.6408)),
-    ('Whitefield to Silk Board', (12.9698, 77.7499), (12.9177, 77.6238)),
-    ('Bellandur to Marathahalli', (12.9304, 77.6784), (12.9569, 77.7011)),
+    ("Koramangala to Indiranagar", (12.9350, 77.6245), (12.9784, 77.6408)),
+    ("Whitefield to Silk Board", (12.9698, 77.7499), (12.9177, 77.6238)),
+    ("Bellandur to Marathahalli", (12.9304, 77.6784), (12.9569, 77.7011)),
 ]
+
+
+def assessment_complete(result, safety_buffer=15):
+    """Warnings can coexist with missing data; verify every checkpoint separately."""
+    if result.get("state") == "UNKNOWN" or not result.get("weather"):
+        return False
+    now = datetime.now(timezone.utc)
+    for point in result["weather"]:
+        if point.get("available") is not True:
+            return False
+        try:
+            horizon = datetime.fromisoformat(point["forecast_until"].replace("Z", "+00:00"))
+            arrival = now + timedelta(minutes=point["eta_mins"] + safety_buffer)
+            if horizon < arrival:
+                return False
+        except (KeyError, ValueError, TypeError):
+            return False
+    return True
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--live', action='store_true', help='Allow real provider requests')
+    parser.add_argument("--live", action="store_true", help="Allow real provider requests")
     args = parser.parse_args()
     if not args.live:
-        parser.error('--live is required; this script makes external provider requests')
+        parser.error("--live is required; this script makes external provider requests")
     from main import assess_commute
     from services.configuration import load_config
+
     original = load_config()
     failed = []
     for name, origin, destination in ROUTES:
         config = copy.deepcopy(original)
-        config['locations'] = {'origin': {'name': name + ' start', 'lat': origin[0], 'lon': origin[1]},
-                               'destination': {'name': name + ' end', 'lat': destination[0], 'lon': destination[1]}}
-        config.get('route', {}).pop('selected_route', None)
+        config["locations"] = {
+            "origin": {"name": name + " start", "lat": origin[0], "lon": origin[1]},
+            "destination": {"name": name + " end", "lat": destination[0], "lon": destination[1]},
+        }
+        config.get("route", {}).pop("selected_route", None)
         result = assess_commute(config, social=False)
         print(f"{name}: {result['state']}")
-        if result['state'] == 'UNKNOWN':
+        if not assessment_complete(
+            result, config.get("thresholds", {}).get("safety_buffer_mins", 15)
+        ):
             failed.append(name)
     if failed:
-        parser.exit(1, 'Live check incomplete: ' + ', '.join(failed) + '\n')
+        parser.exit(1, "Live check incomplete: " + ", ".join(failed) + "\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

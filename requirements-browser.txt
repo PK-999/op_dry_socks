@@ -1,0 +1,2 @@
+# Optional X session reader and browser regression support.
+playwright==1.63.0

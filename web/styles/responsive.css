@@ -1,0 +1,168 @@
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — Tablets
+   ══════════════════════════════════════════════════════════ */
+
+@media (min-width: 1600px) {
+  .site-header {
+    padding-left: calc((100% - 1454px) / 2);
+    padding-right: calc((100% - 1454px) / 2);
+  }
+}
+
+@media (max-width: 1200px) {
+  .site-header { height: 68px; padding: 0 3%; }
+  .page-shell { padding: 28px 3% 0; }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .map-card { grid-column: 1 / -1; min-height: 335px; }
+  .map-frame { min-height: 260px; }
+  .map-card-heading { padding: 17px 21px; }
+  .map-card-heading .eyebrow { display: none; }
+  .map-footer { padding: 11px 18px; }
+
+  .departure-card h2 { font-size: 30px; }
+  .departure-card { padding: 22px 24px; min-height: 320px; }
+  .metrics-grid { gap: 12px; }
+  .metric-card { min-height: 110px; }
+
+  .details-grid { grid-template-columns: 1.2fr 1fr; gap: 16px; }
+  .forecast-card, .reports-card { padding: 20px; }
+  .subtle-badge { display: none; }
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — Mobile
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 760px) {
+  .ambient-badge { display: none; }
+  .brand, .header-time { white-space: nowrap; }
+  .brand, .theme-toggle { flex-shrink: 0; }
+  .site-header { height: 60px; padding: 0 20px; gap: 12px; }
+  .brand { font-size: 20px; gap: 8px; }
+  .brand-mark { height: 28px; width: 28px; }
+  .brand-mark svg { height: 24px; width: 24px; }
+  .city-label { font-size: 10px; }
+  .header-time { gap: 5px; }
+  .header-time #local-date { display: none; }
+  .header-time strong { font-size: 11px; }
+  .timezone { font-size: 8px; }
+
+  .page-shell { padding: 24px 20px 0; }
+  .page-intro { margin-bottom: 22px; align-items: flex-start; }
+  .page-intro h1 { font-size: 30px; max-width: 250px; line-height: 1.12; }
+  .intro-copy { font-size: 12px; max-width: 200px; line-height: 1.6; }
+  .page-intro .eyebrow { font-size: 8px; }
+
+  .refresh-wrap { margin-top: 24px; }
+  .refresh-button { padding: 10px; width: 36px; height: 36px; min-height: 36px; }
+  .refresh-button span { display: none; }
+  .refresh-wrap .small-copy { max-width: 85px; text-align: right; font-size: 8px; }
+
+  .dashboard-grid { grid-template-columns: 1fr; gap: 16px; }
+
+  .planner-card { padding: 22px; }
+  .planner-card .locations {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    position: relative;
+  }
+  .swap-row {
+    position: absolute;
+    left: 50%;
+    top: 34px;
+    transform: translateX(-50%) rotate(90deg);
+    padding: 0;
+    height: 25px;
+  }
+  .swap-row > span { display: none; }
+  .mode-switch { max-width: 100%; margin-top: 17px; }
+  .location-input-wrap { padding: 0 8px; gap: 6px; }
+  .location-input-wrap input { font-size: 11px; }
+  .location-input-wrap input::placeholder { font-size: 10px; }
+  .location-letter { height: 17px; width: 17px; font-size: 8px; }
+  .field-label-row { gap: 5px; }
+  .map-pick { font-size: 8px; }
+  .route-options-list:has(.route-option) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  }
+  .primary-button { margin-top: 18px; }
+  .planner-bottom { display: flex; align-items: center; gap: 14px; padding-top: 15px; }
+  .save-button { width: auto; white-space: nowrap; flex: 1; }
+  .planner-bottom .small-copy { margin: 0; text-align: left; flex: 1; }
+
+  .outlook-column { gap: 12px; }
+  .departure-card { min-height: 315px; padding: 22px; }
+  .departure-card h2 { font-size: 34px; max-width: 400px; }
+  .advice-subtitle { font-size: 12px; }
+  .hero-heading .eyebrow { font-size: 9px; }
+  .departure-detail { padding-top: 12px; padding-bottom: 22px; }
+  .hero-footer { font-size: 9px; }
+  .hero-footer-tag { font-size: 8px; }
+  .metric-card { padding: 18px 20px; }
+  .departure-window { margin-top: 0; margin-bottom: 22px; }
+  .departure-window > span { font-size: 52px; }
+
+  .map-card { grid-column: auto; min-height: 370px; }
+  .map-frame { min-height: 275px; }
+
+  .details-grid { grid-template-columns: 1fr; margin-top: 16px; gap: 16px; }
+  .forecast-card, .reports-card { padding: 22px; }
+  .subtle-badge { display: block; }
+  .details-grid h2 { font-size: 18px; }
+  .section-empty { padding-bottom: 22px; }
+  .forecast-table th:first-child { width: 34%; }
+  .forecast-table td { padding: 12px 3px; }
+  .forecast-cell { font-size: 10px; }
+  .checkpoint-name { font-size: 11px; }
+  .footnote { font-size: 10px; }
+
+  .page-footer { flex-direction: column; gap: 5px; font-size: 9px; }
+  .report p { font-size: 12px; }
+  .report-top { font-size: 11px; }
+  .report-link { font-size: 10px; }
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — Small phones
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 420px) {
+  .city-label, .header-divider { display: none; }
+  .site-header { padding: 0 16px; gap: 10px; }
+  .header-divider { height: 16px; }
+  .brand { font-size: 19px; }
+  .city-dot { display: none; }
+  .header-time .timezone { display: none; }
+
+  .page-shell { padding-left: 14px; padding-right: 14px; }
+  .page-intro h1 { font-size: 26px; }
+
+  .planner-card, .forecast-card, .reports-card { padding: 18px 16px; }
+  .planner-card .locations { gap: 22px; }
+  .location-input-wrap { padding: 0 6px; gap: 5px; }
+  .map-pick { font-size: 7px; }
+  .location-letter { height: 15px; width: 15px; font-size: 7px; }
+  .clear-input { font-size: 15px; }
+
+  .departure-card { padding: 20px; }
+  .departure-card h2 { font-size: 30px; }
+  .hero-footer { font-size: 8px; }
+  .hero-footer-tag { font-size: 7px; }
+
+  .metric-card { padding: 16px; }
+  .metric-label { font-size: 7px; }
+  .metric-value { font-size: 30px; }
+
+  .subtle-badge { font-size: 7px; }
+  .forecast-table { min-width: 310px; }
+  .source-status { font-size: 7px; }
+  .map-footer { font-size: 8px; }
+}

@@ -1,4 +1,5 @@
 """Fresh route alternatives shared by the dashboard and notification runner."""
+
 import math
 
 import polyline
@@ -21,7 +22,7 @@ def haversine_km(lat1, lon1, lat2, lon2):
     dlon = lon2_rad - lon1_rad
     dlat = lat2_rad - lat1_rad
 
-    a = math.sin(dlat / 2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2)**2
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c
 
@@ -32,7 +33,7 @@ def sample_geometry(geometry, interval_km=3.0, duration_mins=0):
     Point ETA assumes uniform progress; it is not a junction-level traffic ETA.
     At most 32 points are requested from the weather provider.
     """
-    coords = geometry.get('coordinates', [])
+    coords = geometry.get("coordinates", [])
     if len(coords) < 2:
         return []
     lengths = [haversine_km(a[1], a[0], b[1], b[0]) for a, b in zip(coords, coords[1:])]
@@ -52,77 +53,130 @@ def sample_geometry(geometry, interval_km=3.0, duration_mins=0):
             segment += 1
         a, b = coords[segment], coords[segment + 1]
         fraction = min(1, max(0, (target - walked) / lengths[segment])) if lengths[segment] else 0
-        points.append({
-            'lat': a[1] + (b[1] - a[1]) * fraction,
-            'lon': a[0] + (b[0] - a[0]) * fraction,
-            'distance_km': round(target, 2),
-            'eta_mins': round(duration_mins * target / total, 1),
-            'name': f'{target:.1f} km along route',
-        })
-    points[0]['name'], points[-1]['name'] = 'Start', 'Destination'
+        points.append(
+            {
+                "lat": a[1] + (b[1] - a[1]) * fraction,
+                "lon": a[0] + (b[0] - a[0]) * fraction,
+                "distance_km": round(target, 2),
+                "eta_mins": round(duration_mins * target / total, 1),
+                "name": f"{target:.1f} km along route",
+            }
+        )
+    points[0]["name"], points[-1]["name"] = "Start", "Destination"
     return points
 
 
 def _route(index, summary, seconds, meters, geometry, interval, provider, traffic_aware):
     seconds, meters = float(seconds), float(meters)
     if not math.isfinite(seconds) or seconds <= 0 or not math.isfinite(meters) or meters <= 0:
-        raise ValueError('Invalid route metrics')
+        raise ValueError("Invalid route metrics")
     mins = max(1, math.ceil(seconds / 60))
     points = sample_geometry(geometry, interval, mins)
     if not points:
-        raise ValueError('Missing route geometry')
+        raise ValueError("Missing route geometry")
     return {
-        'index': index, 'summary': summary or f'Route {index + 1}',
-        'duration_mins': mins, 'distance_km': round(meters / 1000, 1),
-        'geometry': geometry, 'waypoints': points, 'provider': provider,
-        'traffic_aware': traffic_aware,
+        "index": index,
+        "summary": summary or f"Route {index + 1}",
+        "duration_mins": mins,
+        "distance_km": round(meters / 1000, 1),
+        "geometry": geometry,
+        "waypoints": points,
+        "provider": provider,
+        "traffic_aware": traffic_aware,
     }
 
 
-def get_routes(config, origin, destination, travel_mode='TWO_WHEELER'):
-    if travel_mode not in ('DRIVE', 'TWO_WHEELER'):
-        raise ValueError('Choose car or two-wheeler')
-    interval = config.get('route', {}).get('dense_sampling_interval_km', 3.0)
-    google = config.get('google_maps_token')
+def get_routes(config, origin, destination, travel_mode="TWO_WHEELER"):
+    if travel_mode not in ("DRIVE", "TWO_WHEELER"):
+        raise ValueError("Choose car or two-wheeler")
+    interval = config.get("route", {}).get("dense_sampling_interval_km", 3.0)
+    google = config.get("google_maps_token")
     if configured(google):
         try:
             response = requests.post(
-                'https://routes.googleapis.com/directions/v2:computeRoutes',
-                headers={'X-Goog-Api-Key': google,
-                         'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.description'},
+                "https://routes.googleapis.com/directions/v2:computeRoutes",
+                headers={
+                    "X-Goog-Api-Key": google,
+                    "X-Goog-FieldMask": "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.description",
+                },
                 json={
-                    'origin': {'location': {'latLng': {'latitude': origin['lat'], 'longitude': origin['lon']}}},
-                    'destination': {'location': {'latLng': {'latitude': destination['lat'], 'longitude': destination['lon']}}},
-                    'travelMode': travel_mode, 'routingPreference': 'TRAFFIC_AWARE',
-                    'computeAlternativeRoutes': True, 'languageCode': 'en-US',
-                }, timeout=12)
+                    "origin": {
+                        "location": {
+                            "latLng": {"latitude": origin["lat"], "longitude": origin["lon"]}
+                        }
+                    },
+                    "destination": {
+                        "location": {
+                            "latLng": {
+                                "latitude": destination["lat"],
+                                "longitude": destination["lon"],
+                            }
+                        }
+                    },
+                    "travelMode": travel_mode,
+                    "routingPreference": "TRAFFIC_AWARE",
+                    "computeAlternativeRoutes": True,
+                    "languageCode": "en-US",
+                },
+                timeout=12,
+            )
             response.raise_for_status()
             routes = []
-            for index, item in enumerate(response.json().get('routes', [])[:3]):
-                coordinates = [[lon, lat] for lat, lon in polyline.decode(item['polyline']['encodedPolyline'])]
-                routes.append(_route(index, item.get('description'), item['duration'].removesuffix('s'),
-                                     item['distanceMeters'], {'type': 'LineString', 'coordinates': coordinates},
-                                     interval, 'Google Routes', True))
+            for index, item in enumerate(response.json().get("routes", [])[:3]):
+                coordinates = [
+                    [lon, lat] for lat, lon in polyline.decode(item["polyline"]["encodedPolyline"])
+                ]
+                routes.append(
+                    _route(
+                        index,
+                        item.get("description"),
+                        item["duration"].removesuffix("s"),
+                        item["distanceMeters"],
+                        {"type": "LineString", "coordinates": coordinates},
+                        interval,
+                        "Google Routes",
+                        True,
+                    )
+                )
             if routes:
                 return routes
         except (requests.RequestException, ValueError, KeyError, TypeError):
             pass  # Do not expose credential-bearing upstream URLs in error messages.
-    mapbox = config.get('mapbox_token')
+    mapbox = config.get("mapbox_token")
     # Mapbox driving is not a substitute for a motorcycle route.
-    if travel_mode == 'DRIVE' and configured(mapbox):
+    if travel_mode == "DRIVE" and configured(mapbox):
         try:
             response = requests.get(
                 f"https://api.mapbox.com/directions/v5/mapbox/driving/{origin['lon']},{origin['lat']};{destination['lon']},{destination['lat']}",
-                params={'access_token': mapbox, 'geometries': 'geojson', 'overview': 'full', 'alternatives': 'true'}, timeout=12)
+                params={
+                    "access_token": mapbox,
+                    "geometries": "geojson",
+                    "overview": "full",
+                    "alternatives": "true",
+                },
+                timeout=12,
+            )
             response.raise_for_status()
-            routes = [_route(i, f'Driving route {i + 1}', r['duration'], r['distance'], r['geometry'],
-                             interval, 'Mapbox · no live traffic', False)
-                      for i, r in enumerate(response.json().get('routes', [])[:3])]
+            routes = [
+                _route(
+                    i,
+                    f"Driving route {i + 1}",
+                    r["duration"],
+                    r["distance"],
+                    r["geometry"],
+                    interval,
+                    "Mapbox · no live traffic",
+                    False,
+                )
+                for i, r in enumerate(response.json().get("routes", [])[:3])
+            ]
             if routes:
                 return routes
         except (requests.RequestException, ValueError, KeyError, TypeError):
             pass
-    raise RoutingUnavailable('Routes unavailable. Check your Google Routes API key and quota in config.json. Car routes can also use a Mapbox key.')
+    raise RoutingUnavailable(
+        "Routes unavailable. Check your Google Routes API key and quota in config.json. Car routes can also use a Mapbox key."
+    )
 
 
 def _distance_to_segment(point, a, b):
@@ -137,15 +191,21 @@ def _distance_to_segment(point, a, b):
 def select_saved_route(routes, saved=None):
     """Match a preference to fresh alternatives; never reuse a saved old ETA."""
     if not routes:
-        raise RoutingUnavailable('No routes available')
-    saved_coords = (saved or {}).get('geometry', {}).get('coordinates', [])
+        raise RoutingUnavailable("No routes available")
+    saved_coords = (saved or {}).get("geometry", {}).get("coordinates", [])
     if len(saved_coords) < 2:
         return routes[0]
+
     def score(route):
-        coords = route['geometry']['coordinates']
-        points = coords[::max(1, len(coords) // 40)]
-        reverse = saved_coords[::max(1, len(saved_coords) // 40)]
+        coords = route["geometry"]["coordinates"]
+        points = coords[:: max(1, len(coords) // 40)]
+        reverse = saved_coords[:: max(1, len(saved_coords) // 40)]
         # Symmetric comparison avoids preferring a shortcut with only shared endpoints.
-        return (sum(min(_distance_to_segment(p, a, b) for a, b in zip(saved_coords, saved_coords[1:])) for p in points) / len(points)
-                + sum(min(_distance_to_segment(p, a, b) for a, b in zip(coords, coords[1:])) for p in reverse) / len(reverse))
+        return sum(
+            min(_distance_to_segment(p, a, b) for a, b in zip(saved_coords, saved_coords[1:]))
+            for p in points
+        ) / len(points) + sum(
+            min(_distance_to_segment(p, a, b) for a, b in zip(coords, coords[1:])) for p in reverse
+        ) / len(reverse)
+
     return min(routes, key=score)

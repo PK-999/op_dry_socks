@@ -1,5 +1,9 @@
 # Codebase review and implemented improvements
 
+> Historical notes from 3–4 October 2026. Some UI and setup details below describe
+> that earlier version. See [current readiness](READINESS.md) and
+> [architecture](ARCHITECTURE.md) for the current repository.
+
 Reviewed on 3 October 2026. The initial checkout already contained local edits,
 an untracked Flask server/UI and exploratory scripts. Those files were improved
 in place. Existing `config.json`, `scratch/`, and telemetry were not reset.

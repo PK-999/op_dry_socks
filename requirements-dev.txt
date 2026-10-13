@@ -1,2 +1,4 @@
 -r requirements.txt
-pytest
+-r requirements-browser.txt
+pytest==9.1.1
+ruff==0.17.0

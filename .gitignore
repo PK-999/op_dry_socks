@@ -13,3 +13,10 @@ scratch/
 .env
 .env.*
 !.env.example
+.superpowers/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/

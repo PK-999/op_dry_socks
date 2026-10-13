@@ -3,7 +3,7 @@
 
   const STORAGE_KEY = 'dry-socks-theme';
   const THEMES = new Set(['light', 'dark']);
-  const colors = {light: '#f6f7f2', dark: '#101713'};
+  const colors = {light: '#faf9f6', dark: '#0a0a0a'};
 
   function normalize(theme) {
     return THEMES.has(theme) ? theme : null;
